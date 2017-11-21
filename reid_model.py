@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from frw import FRW
 
 class ReID_Net(nn.Module):
     """ CNN used in the Paper 'Deep Person Re-Identification with Improved Embedding 
