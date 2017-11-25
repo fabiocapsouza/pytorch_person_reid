@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from frw import FRW
 
 class ReID_Net(nn.Module):

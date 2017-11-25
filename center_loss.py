@@ -1,6 +1,7 @@
 import torch
 import torch.nn
 from torch.nn.modules.loss import _Loss
+from torch.autograd import Variable
 
 
 class CenterLoss(_Loss):
@@ -19,7 +20,7 @@ class CenterLoss(_Loss):
                 - num_classes: number of classes for classification.
                 - alpha: update rate of the centers.
         """
-        super(CenterLoss, self).__init__(size_average=False)
+        super(CenterLoss, self).__init__(size_average=True)
         self.model = model
         self.centers = centers
         assert isinstance(alpha, float) and 0 < alpha <= 1, "'alpha' must be a float between 0 and 1."
@@ -61,7 +62,7 @@ class CenterLoss(_Loss):
             class_occurences = torch.index_select(hist, dim=0, index=targets.data).view(-1, 1)
             
             # Center updates
-            center_updates = self.alpha * torch.div(diff.data, denom)
+            center_updates = self.alpha * torch.div(diff.data, class_occurences)
             
             # Updates the centers in-place: the variable `targets` indexes the centers that must be
             # updated. `targets` is expanded to have the same shape as `center_updates`.
