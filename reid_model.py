@@ -77,3 +77,38 @@ class ReID_Net(nn.Module):
         x = x.view(x.size(0), -1)
         features = self.fc_embeddings(x)
         return features
+
+
+    def prepare_model_to_transfer(self, new_num_classes):
+        ''' Function that creates a new classifier Layer and overwrites the `centers`
+            buffer to new number of classes of the model. '''
+
+        self.num_classes = new_num_classes
+        del self.classifier
+
+        # Create new centers with correct size
+        self.register_buffer('centers', torch.randn(new_num_classes, self.feature_dim))
+        self.classifier = nn.Linear(512, new_num_classes)
+
+
+
+    @classmethod
+    def from_checkpoint(cls, filename, drop_classifier=False):
+        ''' Alternative constructor that creates the model from a saved checkpoint.
+            The `centers` buffer is used to find the number of classes and the the embedding 
+            dimension.
+        '''
+        ckpt = torch.load(filename)
+        # find `num_classes` and `feature_dim` from `centers` buffer
+        num_classes = ckpt['state_dict']['centers'].size(0)
+        feature_dim = ckpt['state_dict']['centers'].size(1)
+        model = cls(num_classes, feature_dim)
+        if drop_classifier:
+            del model.classifier
+            model.forward = model.get_embeddings
+
+        return model
+
+
+
+
