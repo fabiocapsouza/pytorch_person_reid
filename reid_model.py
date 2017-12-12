@@ -103,10 +103,11 @@ class ReID_Net(nn.Module):
         num_classes = ckpt['state_dict']['centers'].size(0)
         feature_dim = ckpt['state_dict']['centers'].size(1)
         model = cls(num_classes, feature_dim)
+        model.load_state_dict(ckpt['state_dict'])
+
         if drop_classifier:
             del model.classifier
             model.forward = model.get_embeddings
-
         return model
 
 
