@@ -7,15 +7,16 @@ from torch.utils.data import Dataset
 
 class Market1501(Dataset):
     def __init__(self, fpath, train=True, test=False, transform=None):
+
         with np.load(fpath) as data:
             #print(data.files)
             if train:
                 self.X = data['X_train']   # (N,H,W,C)
                 self.y = data['y_train']
             elif test:
-                self.X = data['X_querygal']
-                self.y = data['y_querygal']
-                self.cam_ids = data['query_cam_ids']
+                self.X_querygal = data['X_querygal']
+                self.y_querygal = data['y_querygal']
+                self.cam_ids_querygal = data['query_cam_ids']
                 self.X_distractors = data['X_distractors']
                 self.y_distractors = data['y_distractors']
                 self.cam_ids_distractors = data['distractors_cam_ids']
@@ -23,12 +24,35 @@ class Market1501(Dataset):
                 self.X = data['X_val']
                 self.y = data['y_val']
                 self.cam_ids = data['val_cam_ids']
+
+        if train == False and test == True:
+            self.mode = 'query'
         
         assert len(self.X) == len(self.y)
         self.train = train
         self.test = test
         
         self.transform = transform
+
+
+    @property
+    def mode(self):
+        return self._mode
+
+    @mode.setter
+    def mode(self, value):
+        if value not in ['query', 'distractors']:
+            raise ValueError('Mode must be either "query" or "distractors".')
+
+        self._mode = value
+        if value == 'query':
+            self.X = self.X_querygal
+            self.y = self.y_querygal
+            self.cam_ids = self.cam_ids_querygal
+        elif value == 'distractors':
+            self.X = self.X_distractors
+            self.y = self.y_distractors
+            self.cam_ids = self.cam_ids_distractors
     
     def __len__(self):
         return len(self.X)
